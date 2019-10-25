@@ -15,6 +15,10 @@ class Contact extends Component{
             "Email:confusion@food.net"
         }
     }
+
+    static navigationOptions = {
+        title: 'Contact Us'
+    }
     render(){
         return(
             <Card title = {'Contact Information'}>

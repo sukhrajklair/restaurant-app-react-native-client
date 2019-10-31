@@ -154,3 +154,39 @@ export const addFavorite = dishId => ({
     type: ActionTypes.ADD_FAVORITE,
     payload: dishId
 })
+
+export const addComment = (comment) => ({
+    type: ActionTypes.ADD_COMMENT,
+    payload: comment
+});
+
+export const postComment= (newComment)=>(dispatch)=>{
+
+  newComment.date = new Date().toISOString();
+
+  return fetch(baseUrl + 'comments',{
+    method:'POST',
+    body: JSON.stringify(newComment),
+    headers:{
+      'Content-Type': 'application/json'
+    },
+    credentials: 'same-origin'
+  })
+  .then(response=>{
+    if (response.ok){
+      return response;
+    }else{
+      const error = new Error('Error '+ response.status + ': ' + response.statusText);
+      error.response = response;
+      throw error;
+    }
+  })
+  .then(response=>response.json())
+  .then(comment=>dispatch(addComment(comment)))
+  .catch(error => dispatch(dishesFailed(error.message)));
+}
+
+export const deleteFavorite = dishId => ({
+    type: ActionTypes.DELETE_FAVORITE,
+    payload: dishId
+})

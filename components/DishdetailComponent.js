@@ -22,9 +22,11 @@ function RenderDish(props) {
         //the value of dx is negative for right to left gestures and vice versa
         //top left corner is (0,0)
         if (dx < -200)
-            return true
+            return 'left'
+        else if (dx > 200)
+            return 'right'
         else 
-            return false
+            return null
     };
 
     const panResponder = PanResponder.create({
@@ -41,7 +43,8 @@ function RenderDish(props) {
                 .then(endState => console.log(endState.finished ? 'finished':'cancelled'))
         },
         onPanResponderEnd: (e,gestureState) => {
-            if (recognizeDrag(gestureState))
+            const drag = recognizeDrag(gestureState);
+            if (drag === 'left') {
                 Alert.alert(
                     'Add to Favorites?',
                     'Are you sure you wish to add this dish to your favorites?',
@@ -59,6 +62,10 @@ function RenderDish(props) {
                         }
                     ]
                 )
+            }
+            else if (drag === 'right') {
+                props.onCommentPress();
+            }
             return true;
         }
 

@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Text, View, ScrollView, FlatList, Modal, Alert, PanResponder } from 'react-native';
+import { Text, View, ScrollView, FlatList, Modal, Alert, PanResponder, Share } from 'react-native';
 import { Card, Icon, Input, Rating, Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as Animatable from 'react-native-animatable';
@@ -71,6 +71,16 @@ function RenderDish(props) {
 
     })
 
+    const shareDish = (title, message,url)=>{
+        Share.share({
+            title: title,
+            message: title + ': ' + message + ' ' + url,
+            url: url
+        },{
+            dialogTitle: 'Share ' + title
+        })
+    }
+
     /*this function is passed to the ref props of the Animatable.View component
     the component in turn passes the its own reference to the function
     the reference can then be assigned to a local variable which can then be
@@ -89,25 +99,34 @@ function RenderDish(props) {
                         {dish.description}
                     </Text>
                     <View style = {{flex:1, flexDirection:'row', justifyContent: 'center'}}>
-                            <Icon
-                                raised
-                                reverse
-                                name = {props.favorite? 'heart':'heart-o'}
-                                type = 'font-awesome'
-                                color = '#f50'
-                                containerStyle = {{flex:1, margin:5,alignItems: 'flex-end',}}
-                                onPress = {() => props.favorite ? 
-                                    console.log('Already favorite')
-                                    : props.onLikePress()}
-                            />
-                            <Icon
-                                reverse
-                                name = 'pencil'
-                                type = 'font-awesome'
-                                color = '#512DA8'
-                                containerStyle = {{flex:1, margin:5}}
-                                onPress = {() => props.onCommentPress()}
-                            />
+                        <Icon
+                            raised
+                            reverse
+                            name = {props.favorite? 'heart':'heart-o'}
+                            type = 'font-awesome'
+                            color = '#f50'
+                            containerStyle = {{flex:1, margin:5,alignItems: 'flex-end',}}
+                            onPress = {() => props.favorite ? 
+                                console.log('Already favorite')
+                                : props.onLikePress()}
+                        />
+                        <Icon
+                            reverse
+                            name = 'pencil'
+                            type = 'font-awesome'
+                            color = '#512DA8'
+                            containerStyle = {{flex:1, margin:5, alignItems: 'center'}}
+                            onPress = {() => props.onCommentPress()}
+                        />
+                        <Icon
+                            raised
+                            reverse
+                            name = 'share'
+                            type = 'font-awesome'
+                            color = '#512DA8'
+                            containerStyle = {{flex:1, margin:5}}
+                            onPress = {() => shareDish(dish.name, dish.description, baseUrl+dish.image)}
+                        />
 
                     </View>
                 </Card>

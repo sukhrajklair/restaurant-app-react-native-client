@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { View, Platform, Image, StyleSheet, ScrollView, Text } from 'react-native';
+import { View, Platform, Image, StyleSheet, ScrollView, Text, NetInfo, ToastAndroid } from 'react-native';
 import { createStackNavigator, createDrawerNavigator, DrawerItems, SafeAreaView } from 'react-navigation';
 import { Icon } from 'react-native-elements';
 import { connect } from 'react-redux';
 import * as actions from '../redux/actions';
+import Constants from 'expo-constants';
 
 import Menu from './MenuComponent';
 import Dishdetail from './DishdetailComponent';
@@ -12,6 +13,7 @@ import Contact from './ContactComponent';
 import About from './AboutComponent';
 import Reservation from './ReservationComponent';
 import Favorites from './FavoritesComponent';
+import Login from './LoginComponent';
 
 const mapStateToProps = state => ({
 
@@ -145,7 +147,27 @@ const FavoritesNavigator = createStackNavigator({
                     />
     })
 })
-
+const LoginNavigator = createStackNavigator({
+    Login: {screen: Login}
+},
+{
+    navigationOptions: ({navigation}) => ({
+        headerStyle: {
+            backgroundColor: "#512DA8"
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+            color: "#fff"            
+        },
+        headerLeft: <Icon
+                    name = 'sign-in'
+                    type = 'font-awesome'
+                    size = {24}
+                    color = 'white'
+                    onPress = {()=>navigation.toggleDrawer()}
+                    />
+    })
+})
 const CustomDrawerContentComponent = (props) => (
     <ScrollView>
         <SafeAreaView style={styles.container} forceInset={{ top: 'always', horizontal: 'never' }}>
@@ -163,6 +185,22 @@ const CustomDrawerContentComponent = (props) => (
 );
 
 const MainNavigator = createDrawerNavigator({
+    Login: {
+        screen: LoginNavigator,
+        navigationOptions : {
+            title:'Login',
+            drawerLabel: 'Login',
+            drawerIcon: ({ tintColor}) => (
+                <Icon 
+                    name = 'sign-in'
+                    type = 'font-awesome'
+                    size = {24}
+                    color = {tintColor}
+                    />
+            )
+        }
+        
+    },
     Home: {
         screen: HomeNavigator,
         navigationOptions : {
@@ -255,6 +293,7 @@ const MainNavigator = createDrawerNavigator({
         }
     }
 },{
+    initialRouteName: 'Home',
     drawerBackgroundColor: '#D1C4E9',
     contentComponent: CustomDrawerContentComponent
 })
@@ -266,11 +305,38 @@ class Main extends Component {
         this.props.fetchComments();
         this.props.fetchPromos();
         this.props.fetchLeaders();
+
+        NetInfo.getConnectionInfo()
+            .then(connectionInfo => {
+                ToastAndroid.show('Initial Network Connection Type: '
+                + connectionInfo.type + ', effectiveType: ' + connectionInfo.effectiveType,
+                ToastAndroid.LONG)
+            });
+
+        NetInfo.addEventListener('connectionChange', this.handleConnectivityChange)
     }
     
+    componentWillUnmount(){
+        NetInfo.removeEventListener('connectionChange', this.handleConnectivityChange)
+    }
+
+    handleConnectivityChange = connectionInfo => {
+        switch(connectionInfo.type){
+            case 'none':
+                ToastAndroid.show('You are now offline!', ToastAndroid.LONG)
+            case 'wifi':
+                ToastAndroid.show('You are now connected to wifi!', ToastAndroid.LONG)
+            case 'cellular':
+                ToastAndroid.show('You are now connectd to cellular!', ToastAndroid.LONG)
+            case 'unknown':
+                ToastAndroid.show('Your connection state is unknown!', ToastAndroid.LONG)
+            default:
+        }
+
+    }
     render(){
         return (
-            <View style={{flex:1, paddingTop: Platform.OS === 'ios' ? 0 : Expo.Constants.statusBarHeight}}> 
+            <View style={{flex:1, paddingTop: Platform.OS === 'ios' ? 0 : Constants.statusBarHeight}}> 
                 <MainNavigator />  
             </View>
         )

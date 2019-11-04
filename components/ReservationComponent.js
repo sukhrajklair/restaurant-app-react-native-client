@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import { Text, View, ScrollView, StyleSheet, Picker, Switch, Button, Alert } from 'react-native';
 import DatePicker from 'react-native-datepicker';
 import * as Animatable from 'react-native-animatable';
+import { Notifications } from 'expo';
+import * as Permissions from 'expo-permissions';
+import * as Calendar from 'expo-calendar';
 
 const today = () => {
     date = new Date();
@@ -29,6 +32,70 @@ class Reservation extends Component{
             date: today()
         });
     }
+
+    //async function is executed asynchronously in the event loop
+    //function has to be async if await is used inside the function
+    async obtainNotificationPermission(){
+        //Permission.getAsync is a promise
+        //await wait for the promise to resolve before the next line is executed
+        let permission = await Permissions.getAsync(Permissions.USER_FACING_NOTIFICATIONS);
+        if ( permission.status !== 'granted') {
+            permission = await Permissions.askAsync(Permissions.USER_FACING_NOTIFICATIONS);
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission not granted to show notification');
+            }
+        }
+        //async function implicitly returns a promise which resolves with 
+        //the value following the return keyword here
+        return permission;
+    }
+
+    async obtainCalendarPermission(){
+        let permission = await Permissions.getAsync(Permissions.CALENDAR)
+        if ( permission.status !== 'granted') {
+            permission = await Permissions.askAsync(Permissions.CALENDAR);
+            if (permission.status !== 'granted') {
+                Alert.alert('Permission not granted to add an event to the calendar');
+            }
+        }
+        return permission;
+    }
+
+    async presentLocalNotification(date){
+        //ontainNotificationPermission() is an async function and therefore returns a promise
+        //which allows us to use the await keyword with it for the returned promise to be resolved
+        await this.obtainNotificationPermission();
+        Notifications.presentLocalNotificationAsync({
+            title: 'Your Reservation',
+            body: 'Reservation for ' + date + ' requested',
+            ios: {
+                sound: true,
+            },
+            android: {
+                sound: true,
+                vibrate: true,
+                color: '#512DA8'
+            }
+        })
+    }
+    
+    async addReservationToCalendar(date){
+        await this.obtainCalendarPermission();
+        //const calendars = await Calendar.getCalendarsAsync();
+        //console.log(calendars);
+        const defaultCalendar = 4//calendars.filter(calendar => calendar.isPrimary)[0];
+        Calendar.createEventAsync(
+            defaultCalendar,
+            {
+                title: 'Con Fusion Table Reservation',
+                startDate: Date.parse(date), //Date.parse() converts date in ISO format to JS Date object
+                endDate: (Date.parse(date) + 2*60*60*1000), //add two hours (in milliseconds) to the date for end time
+                timeZone: 'Asia/Hong_Kong',
+                location: '121, Clear Water Bay Road, Clear Water Bay, Kowloon, Hong Kong'
+            }
+        )
+    }
+
     render() {
         return(
             <Animatable.View animation = "zoomIn" duration = {2000} >
@@ -103,7 +170,11 @@ class Reservation extends Component{
                                      //delete button configuration
                                      {
                                          text: 'ok',
-                                         onPress: () => this.resetForm()
+                                         onPress: () => {
+                                             this.presentLocalNotification(this.state.date);
+                                             this.addReservationToCalendar(this.state.date);
+                                             this.resetForm();
+                                         }
                                      }
                                 ],
                                 //user has explicitly press the cancel button to cancel the delete operation
@@ -113,7 +184,6 @@ class Reservation extends Component{
                         accessibilityLabel = 'Learn more about this purple button'
                     />
                 </View>
-                
             </Animatable.View>
         );
     }

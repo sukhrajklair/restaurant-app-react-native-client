@@ -7,7 +7,7 @@ import * as Animatable from 'react-native-animatable';
 import { Loading } from './LoadingComponent';
 import {baseUrl} from '../shared/baseUrl';
 
-mapStateToProps = state => ({
+const mapStateToProps = state => ({
     leaders: state.leaders
 })
 

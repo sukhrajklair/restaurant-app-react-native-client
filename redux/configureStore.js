@@ -9,6 +9,7 @@ import { comments } from './comments';
 import { leaders } from './leaders';
 import { promotions } from './promotions';
 import { favorites } from './favorites';
+import { auth } from './auth';
 
 export const ConfigureStore = () => {
 
@@ -24,7 +25,8 @@ export const ConfigureStore = () => {
             comments,
             promotions,
             leaders,
-            favorites
+            favorites,
+            auth
         }),
         applyMiddleware(thunk, logger)
     );

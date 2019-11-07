@@ -1,16 +1,20 @@
 import * as ActionTypes from './actionTypes';
 
-export const favorites = (state=[], action) => {
-    switch(action.type){
-        case ActionTypes.ADD_FAVORITE:
-            if (state.some(el=> el === action.payload)){
-                return state;
-            }
-            else {
-                return state.concat(action.payload);
-            }
-        case ActionTypes.DELETE_FAVORITE:
-            return state.filter(dishId => dishId!==action.payload)
+export const favorites = (state = {
+        isLoading: true,
+        errMess: null,
+        favorites: null
+    }, action) => {
+    switch(action.type) {
+        case ActionTypes.ADD_FAVORITES:
+            return {...state, isLoading: false, errMess: null, favorites: action.payload};
+
+        case ActionTypes.FAVORITES_LOADING:
+            return {...state, isLoading: true, errMess: null, favorites: null};
+
+        case ActionTypes.FAVORITES_FAILED:
+            return {...state, isLoading: false, errMess: action.payload, favorites: null};
+
         default:
             return state;
     }

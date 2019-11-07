@@ -60,7 +60,7 @@ class Favorites extends Component {
                             title = {item.name}
                             subtitle = {item.description}
                             hideChevron = {true}
-                            onPress = {() => navigate('Dishdetail', {dishId: item.id})}
+                            onPress = {() => navigate('Dishdetail', {dishId: item._id})}
                             leftAvatar = {{source: {uri : baseUrl + item.image}}}
                             />
                     </Animatable.View>
@@ -84,9 +84,9 @@ class Favorites extends Component {
         else {
             return(
                 <FlatList
-                    data = {this.props.dishes.dishes.filter(dish => (this.props.favorites.includes(dish.id)))}
+                    data = {this.props.dishes.dishes.filter(dish => (this.props.favorites.includes(dish._id)))}
                     renderItem = {renderMenuItem}
-                    keyExtractor = {item => item.id.toString()}
+                    keyExtractor = {item => item._id.toString()}
                     />
             )
         }

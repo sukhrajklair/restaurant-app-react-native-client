@@ -27,14 +27,12 @@ class Menu extends Component {
                         title = {item.name}
                         caption = {item.description}
                         featured
-                        onPress = {() => navigate('Dishdetail', {dishId: item.id})}
+                        onPress = {() => this.props.navigation.navigate('Dishdetail', {dishId: item._id})}
                         imageSrc={{ uri: baseUrl + item.image}}
                     />
                 </Animatable.View>
             );
         };
-
-        const { navigate } = this.props.navigation;
 
         if (this.props.dishes.isLoading){
             return(

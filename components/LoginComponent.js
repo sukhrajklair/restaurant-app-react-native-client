@@ -6,8 +6,14 @@ import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { createBottomTabNavigator} from 'react-navigation';
+import { connect } from 'react-redux';
 
 import { baseUrl } from '../shared/baseUrl';
+import * as actions from '../redux/actions';
+
+const mapStateToProps = state => ({
+    auth: state.auth
+});
 
 class LoginTab extends Component {
 
@@ -46,7 +52,11 @@ class LoginTab extends Component {
     };
 
     handleLogin() {
-        console.log(JSON.stringify(this.state));
+        this.props.loginUser({
+            username: this.state.username,
+            password: this.state.password
+        })
+
         if (this.state.remember)
             SecureStore.setItemAsync('userinfo', JSON.stringify({username: this.state.username, password: this.state.password}))
                 .catch((error) => console.log('Could not save user info', error));
@@ -57,47 +67,83 @@ class LoginTab extends Component {
     }
 
     render() {
-        return (
-            <View style={styles.container}>
-                <Input
-                    placeholder="Username"
-                    leftIcon={{ type: 'font-awesome', name: 'user-o' }}
-                    onChangeText={(username) => this.setState({username})}
-                    value={this.state.username}
-                    containerStyle={styles.formInput}
-                    />
-                <Input
-                    placeholder="Password"
-                    leftIcon={{ type: 'font-awesome', name: 'key' }}
-                    onChangeText={(password) => this.setState({password})}
-                    value={this.state.password}
-                    containerStyle={styles.formInput}
-                    />
-                <CheckBox title="Remember Me"
-                    center
-                    checked={this.state.remember}
-                    onPress={() => this.setState({remember: !this.state.remember})}
-                    containerStyle={styles.formCheckbox}
-                    />
-                <View style={styles.formButton}>
-                    <Button
-                        onPress={() => this.handleLogin()}
-                        title="Login"
-                        icon = {<Icon name='sign-in' type = 'font-awesome' color = 'white' size = {24} />}
-                        buttonStyle = {{backgroundColor : '#512DA8'}}
-                        />
+        //if a user is already signed in then show a logout button
+        if (this.props.auth.isAuthenticated) {
+            return(
+                <View style={styles.container}>
+                    <Text>Currently logged in as {this.props.auth.user.username}</Text>
+                    <View style={styles.formButton}>
+                        <Button
+                            onPress={this.props.logoutUser}
+                            title="Log Out"
+                            buttonStyle = {{backgroundColor : '#512DA8'}}
+                            />
+                    </View>
                 </View>
-                <View style={styles.formButton}>
-                    <Button
-                        onPress={() => this.props.navigation.navigate('Register')}
-                        title="Register"
-                        clear
-                        icon = {<Icon name='user-plus' type = 'font-awesome' color = 'blue' size = {24} />}
-                        titleStyle = {{color : 'blue'}}
-                        />
+            );
+        }
+        //if there is an error, show the error and a button to navigate back to Login component
+        else if (this.props.auth.errMess) {
+            return(
+                <View style={styles.container}>
+                    <Text>Error: {this.props.auth.errMess}</Text>
+                    <View style={styles.formButton}>
+                        <Button
+                            onPress={()=>{
+                                this.props.resetLogin();
+                                this.props.navigation.navigate('Login')
+                                }
+                            }
+                            title="Try Again"
+                            buttonStyle = {{backgroundColor : '#512DA8'}}
+                            />
+                    </View>
                 </View>
-            </View>
-        );
+            );
+        }
+        else{
+            return (
+                <View style={styles.container}>
+                    <Input
+                        placeholder="Username"
+                        leftIcon={{ type: 'font-awesome', name: 'user-o' }}
+                        onChangeText={(username) => this.setState({username})}
+                        value={this.state.username}
+                        containerStyle={styles.formInput}
+                        />
+                    <Input
+                        placeholder="Password"
+                        leftIcon={{ type: 'font-awesome', name: 'key' }}
+                        onChangeText={(password) => this.setState({password})}
+                        value={this.state.password}
+                        containerStyle={styles.formInput}
+                        />
+                    <CheckBox title="Remember Me"
+                        center
+                        checked={this.state.remember}
+                        onPress={() => this.setState({remember: !this.state.remember})}
+                        containerStyle={styles.formCheckbox}
+                        />
+                    <View style={styles.formButton}>
+                        <Button
+                            onPress={() => this.handleLogin()}
+                            title="Login"
+                            icon = {<Icon name='sign-in' type = 'font-awesome' color = 'white' size = {24} />}
+                            buttonStyle = {{backgroundColor : '#512DA8'}}
+                            />
+                    </View>
+                    <View style={styles.formButton}>
+                        <Button
+                            onPress={() => this.props.navigation.navigate('Register')}
+                            title="Register"
+                            clear
+                            icon = {<Icon name='user-plus' type = 'font-awesome' color = 'blue' size = {24} />}
+                            titleStyle = {{color : 'blue'}}
+                            />
+                    </View>
+                </View>
+            );
+        }
     }
 }
 
@@ -251,7 +297,7 @@ class RegisterTab extends Component {
 }
 
 const Login = createBottomTabNavigator({
-    Login: LoginTab,
+    Login: connect(mapStateToProps,actions)(LoginTab),
     Register: RegisterTab
 },{
     tabBarOptions:{
